@@ -43,6 +43,106 @@ $('translateBtn').addEventListener('click', async () => {
   }
 });
 
+// ---------------- Словарь: список слов, доступных для перевода ----------------
+// Данные приходят от Web-сервиса через Backend (/api/vocabulary)
+let vocabulary = []; // [{source, target, type, source_lang, target_lang}]
+
+async function loadVocabulary() {
+  const errorBox = $('vocabError');
+  const body = $('vocabBody');
+  errorBox.classList.add('hidden');
+
+  try {
+    const resp = await fetch('/api/vocabulary');
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+
+    // Собираем плоский список и заполняем фильтр направлений
+    const filter = $('vocabFilter');
+    const pairs = Object.entries(data.pairs || {});
+    for (const [pairKey, pair] of pairs) {
+      for (const item of pair.items) {
+        vocabulary.push({
+          ...item,
+          source_lang: pair.source_lang,
+          target_lang: pair.target_lang,
+          pair: pairKey,
+        });
+      }
+      const option = document.createElement('option');
+      option.value = pairKey;
+      option.textContent = `${pair.source_lang.toUpperCase()} → ${pair.target_lang.toUpperCase()}`;
+      filter.appendChild(option);
+    }
+
+    $('vocabCount').textContent =
+      `Всего позиций в словаре: ${data.count} (направлений перевода: ${pairs.length})`;
+    renderVocabulary();
+  } catch (err) {
+    body.innerHTML = '';
+    errorBox.textContent = `Ошибка загрузки словаря: ${err.message}`;
+    errorBox.classList.remove('hidden');
+  }
+}
+
+function renderVocabulary() {
+  const body = $('vocabBody');
+  const pairFilter = $('vocabFilter').value;
+  const search = $('vocabSearch').value.trim().toLowerCase();
+
+  const rows = vocabulary.filter((item) => {
+    if (pairFilter !== 'all' && item.pair !== pairFilter) return false;
+    if (search && !item.source.toLowerCase().includes(search)
+              && !item.target.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  body.innerHTML = '';
+
+  if (!rows.length) {
+    body.innerHTML = '<tr><td colspan="4" class="empty">Ничего не найдено</td></tr>';
+    return;
+  }
+
+  for (const item of rows) {
+    const tr = document.createElement('tr');
+    tr.className = 'clickable';
+    tr.title = 'Нажмите, чтобы подставить слово в поле перевода';
+
+    const source = document.createElement('td');
+    source.textContent = item.source;
+
+    const target = document.createElement('td');
+    target.textContent = item.target;
+
+    const pair = document.createElement('td');
+    pair.textContent = `${item.source_lang} → ${item.target_lang}`;
+
+    const type = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = 'badge' + (item.type === 'phrase' ? ' badge-phrase' : '');
+    badge.textContent = item.type === 'phrase' ? 'фраза' : 'слово';
+    type.appendChild(badge);
+
+    // Клик по строке: подставляем слово и выбираем направление перевода
+    tr.addEventListener('click', () => {
+      $('sourceText').value = item.source;
+      $('targetLang').value = item.target_lang;
+      $('result').classList.add('hidden');
+      $('sourceText').focus();
+    });
+
+    tr.append(source, target, pair, type);
+    body.appendChild(tr);
+  }
+}
+
+$('vocabFilter').addEventListener('change', renderVocabulary);
+$('vocabSearch').addEventListener('input', renderVocabulary);
+
+// Первичная загрузка словаря при открытии страницы
+loadVocabulary();
+
 // ---------------- Кнопка 1: история переводов из БД (через Backend) ----------------
 async function loadHistory() {
   const errorBox = $('historyError');

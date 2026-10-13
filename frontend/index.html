@@ -40,6 +40,36 @@
       <p id="translateError" class="error hidden"></p>
     </section>
 
+    <!-- ===== Словарь (список слов, доступных для перевода) ===== -->
+    <section class="card">
+      <div class="card-header">
+        <h2>Словарь переводчика</h2>
+        <div class="vocab-controls">
+          <select id="vocabFilter">
+            <option value="all">Все направления</option>
+          </select>
+          <input type="search" id="vocabSearch" placeholder="Поиск по слову…">
+        </div>
+      </div>
+      <p id="vocabCount" class="meta"></p>
+      <div class="table-wrap">
+        <table class="vocab-table">
+          <thead>
+            <tr>
+              <th>Слово / фраза</th>
+              <th>Перевод</th>
+              <th>Направление</th>
+              <th>Тип</th>
+            </tr>
+          </thead>
+          <tbody id="vocabBody">
+            <tr><td colspan="4" class="empty">Загрузка…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="vocabError" class="error hidden"></p>
+    </section>
+
     <!-- ===== История переводов (Кнопка 1: запрос данных из БД через Backend) ===== -->
     <section class="card">
       <div class="card-header">

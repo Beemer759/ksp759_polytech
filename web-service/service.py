@@ -4,6 +4,7 @@
 Предоставляет REST-эндпоинты:
     GET  /health     — проверка готовности сервиса
     GET  /languages  — список поддерживаемых целевых языков
+    GET  /vocabulary — словарь слов и фраз, доступных для перевода
     POST /translate  — перевод переданного текста на выбранный язык
 
 Реализация намеренно не зависит от внешних библиотек (только stdlib),
@@ -189,6 +190,27 @@ def translate_text(text: str, target_lang: str) -> tuple[str, str]:
     return result, source_lang
 
 
+def build_vocabulary() -> dict:
+    """Формирует словарь из фраз и слов по направлениям перевода."""
+    vocab = {}
+    for pair in sorted(set(PHRASES) | set(WORDS)):
+        source, target = pair.split("->")
+        phrases = [
+            {"source": src, "target": tgt, "type": "phrase"}
+            for src, tgt in sorted(PHRASES.get(pair, {}).items())
+        ]
+        words = [
+            {"source": src, "target": tgt, "type": "word"}
+            for src, tgt in sorted(WORDS.get(pair, {}).items())
+        ]
+        vocab[pair] = {
+            "source_lang": source,
+            "target_lang": target,
+            "items": phrases + words,
+        }
+    return vocab
+
+
 # ---------------- HTTP-сервер (эндпоинты сервиса) ----------------
 
 class TranslateHandler(BaseHTTPRequestHandler):
@@ -214,6 +236,10 @@ class TranslateHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"status": "ok", "service": "translator-web-service"})
         elif self.path == "/languages":
             self._send_json(200, {"languages": SUPPORTED_LANGUAGES})
+        elif self.path == "/vocabulary":
+            vocabulary = build_vocabulary()
+            total = sum(len(pair["items"]) for pair in vocabulary.values())
+            self._send_json(200, {"count": total, "pairs": vocabulary})
         else:
             self._send_json(404, {"error": "Not found"})
 

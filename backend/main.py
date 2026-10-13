@@ -8,6 +8,7 @@ REST API, которое:
 Эндпоинты:
   GET  /api/health      — проверка готовности (backend + БД)
   GET  /api/languages   — список поддерживаемых языков (проброс от web-сервиса)
+  GET  /api/vocabulary  — словарь слов и фраз, доступных для перевода
   POST /api/translate   — перевод текста через web-сервис + сохранение в БД
   GET  /api/history     — история переводов из БД
   DELETE /api/history   — очистка истории
@@ -78,6 +79,17 @@ def languages():
     """Список поддерживаемых целевых языков (данные web-сервиса)."""
     try:
         resp = requests.get(f"{WEB_SERVICE_URL}/languages", timeout=10)
+        resp.raise_for_status()
+        return jsonify(resp.json())
+    except requests.RequestException as exc:
+        return jsonify({"error": f"Web-сервис недоступен: {exc}"}), 502
+
+
+@app.get("/api/vocabulary")
+def vocabulary():
+    """Словарь слов и фраз, доступных для перевода (проброс от web-сервиса)."""
+    try:
+        resp = requests.get(f"{WEB_SERVICE_URL}/vocabulary", timeout=10)
         resp.raise_for_status()
         return jsonify(resp.json())
     except requests.RequestException as exc:

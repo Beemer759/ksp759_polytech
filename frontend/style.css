@@ -132,6 +132,68 @@ textarea:focus, select:focus { outline: 2px solid #2a5298; }
 
 .hidden { display: none; }
 
+/* ---- Словарь ---- */
+.vocab-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.vocab-controls select,
+.vocab-controls input {
+  border: 1px solid #ccd4e0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: .95rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+.vocab-controls input { min-width: 200px; }
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+.vocab-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .95rem;
+}
+
+.vocab-table th,
+.vocab-table td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid #e1e7f0;
+}
+
+.vocab-table th {
+  background: #f2f7ff;
+  color: #1e3c72;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vocab-table tbody tr:hover { background: #f8faff; }
+
+.vocab-table .badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: .78rem;
+  background: #e8eef7;
+  color: #1e3c72;
+  white-space: nowrap;
+}
+
+.vocab-table .badge-phrase { background: #fff3e0; color: #b25e09; }
+
+/* Клик по строке словаря — подставить слово в поле перевода */
+.vocab-table tbody tr.clickable { cursor: pointer; }
+.vocab-table tbody tr.clickable:hover td:first-child { text-decoration: underline; }
+
 .empty { color: #8a94a6; text-align: center; padding: 14px; }
 
 .footer {
