@@ -75,10 +75,17 @@ curl -X POST http://localhost:8000/api/translate \
 Требования: Docker и Docker Compose.
 
 ```bash
-docker compose up --build
+# Собрать образы и запустить все 4 контейнера в фоне
+docker compose up -d --build
 ```
 
 Приложение доступно по адресу: **http://localhost:8080**
+
+Проверить, что все контейнеры запущены и здоровы:
+
+```bash
+docker compose ps
+```
 
 Остановка:
 
