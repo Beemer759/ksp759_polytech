@@ -1,0 +1,81 @@
+services:
+  # ================= База данных (PostgreSQL) =================
+  db:
+    image: postgres:16-alpine
+    container_name: translator_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-translator_db}
+    volumes:
+      # Данные БД сохраняются между перезапусками контейнеров
+      - pgdata:/var/lib/postgresql/data
+      # Первичная инициализация схемы и начальных данных
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-translator_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_net
+
+  # ================= Web-сервис (по варианту 18: переводчик) =================
+  # Локальный микросервис-эмулятор онлайн-переводчика
+  web-service:
+    build: ./web-service
+    container_name: translator_web_service
+    environment:
+      SERVICE_PORT: "5001"
+    ports:
+      - "5001:5001"   # Порт web-сервиса для отладки из хост-системы
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5001/health', timeout=3)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_net
+
+  # ================= Backend (REST API) =================
+  backend:
+    build: ./backend
+    container_name: translator_backend
+    environment:
+      # Строка подключения к СУБД внутри контейнерной сети
+      DATABASE_URL: "host=db port=5432 dbname=${POSTGRES_DB:-translator_db} user=${POSTGRES_USER:-postgres} password=${POSTGRES_PASSWORD:-postgres}"
+      # Внутренний адрес web-сервиса в сети Docker Compose
+      WEB_SERVICE_URL: "http://web-service:5001"
+    ports:
+      - "8000:8000"   # REST API доступен из хост-системы
+    depends_on:
+      db:
+        condition: service_healthy
+      web-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_net
+
+  # ================= Frontend (веб-интерфейс) =================
+  frontend:
+    build: ./frontend
+    container_name: translator_frontend
+    ports:
+      - "8080:80"     # Доступ к приложению из хост-системы
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app_net
+
+volumes:
+  pgdata:
+
+networks:
+  app_net:
+    driver: bridge

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Онлайн-переводчик · Вариант 18</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <h1>🌐 Онлайн-переводчик</h1>
+    <p class="subtitle">Лабораторная работа · Вариант 18 · Docker Compose</p>
+  </header>
+
+  <main class="container">
+    <!-- ===== Форма перевода (Кнопка 2: запрос к Web-сервису через Backend) ===== -->
+    <section class="card">
+      <h2>Перевод текста</h2>
+      <label for="sourceText">Исходный текст</label>
+      <textarea id="sourceText" rows="4" placeholder="Введите текст для перевода, например: Добрый день!"></textarea>
+
+      <div class="controls">
+        <label for="targetLang">Перевести на:</label>
+        <select id="targetLang">
+          <option value="en" selected>Английский</option>
+          <option value="de">Немецкий</option>
+          <option value="fr">Французский</option>
+          <option value="es">Испанский</option>
+          <option value="ru">Русский</option>
+        </select>
+        <!-- Кнопка 2: запрос данных от Web-сервиса (переводчика) через Backend -->
+        <button id="translateBtn" class="btn btn-primary">Перевести</button>
+      </div>
+
+      <div id="result" class="result hidden">
+        <h3>Результат перевода</h3>
+        <p id="resultText"></p>
+        <p id="resultMeta" class="meta"></p>
+      </div>
+      <p id="translateError" class="error hidden"></p>
+    </section>
+
+    <!-- ===== История переводов (Кнопка 1: запрос данных из БД через Backend) ===== -->
+    <section class="card">
+      <div class="card-header">
+        <h2>История переводов (из БД)</h2>
+        <!-- Кнопка 1: запрос данных из внутренней БД через Backend -->
+        <button id="historyBtn" class="btn btn-secondary">Загрузить историю</button>
+      </div>
+      <p id="historyCount" class="meta"></p>
+      <div id="historyList" class="history"></div>
+      <p id="historyError" class="error hidden"></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    Frontend (nginx) → Backend (Flask) → PostgreSQL + Web-сервис переводчика — 4 контейнера в одной bridge-сети
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
